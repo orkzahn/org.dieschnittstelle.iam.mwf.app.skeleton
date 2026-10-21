@@ -4,23 +4,45 @@
  * this skript defines the data types used by the application and the model operations for handling instances of the latter
  */
 
-import {mwfUtils} from "vfh-iam-mwf-base";
-import {EntityManager} from "vfh-iam-mwf-base";
+import { mwfUtils } from "vfh-iam-mwf-base";
+import { EntityManager } from "vfh-iam-mwf-base";
 
 /*************
  * example entity
  *************/
 
 export class MyEntity extends EntityManager.Entity {
+  // TODO-REPEATED: declare entity instance attributes
 
-    // TODO-REPEATED: declare entity instance attributes
-
-    constructor() {
-        super();
-    }
-
+  constructor() {
+    super();
+  }
 }
 
 // TODO-REPEATED: add new entity class declarations here
+export class MediaItem extends EntityManager.Entity {
+  title;
+  src;
+  added = Date.now();
+  description;
+  constructor(title, src) {
+    super();
+    this.title = title;
+    this.src = src;
+  }
+}
 
+export function createRandomMediaItem(params) {
+  const titles = ["bla", "bla", "bli", "blu"];
+  const dims = [
+    [100, 100],
+    [50, 100],
+    [150, 200],
+    [200, 150],
+    [400, 30],
+  ];
 
+  const title = titles[Math.floor(Math.random() * titles.length)];
+  const dim = dims[Math.floor(Math.random() * dims.length)];
+  return new MediaItem(title, `https://picsum.photos/${dim[0]}/${dim[1]}`);
+}
