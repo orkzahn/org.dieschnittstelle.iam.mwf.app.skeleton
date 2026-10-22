@@ -40,18 +40,23 @@
         <button class="mwf-imgbutton mwf-img-plus mwf-right-align"></button>
       </header>
       <main class="mwf-scrollview">
-        <ul class="mwf-listview" data-mwf-listitem-view="myapp-list-item">
+        <ul
+          class="mwf-listview"
+          data-mwf-listitem-view="myapp-listitem"
+          data-mwf-listitem-menu="myapp-listItemDialog"
+        >
+          <!-- {title: "Lorem", src: "https://", added: 98876} -->
           <li
-            class="mwf-listitem mwf-li-title-subtitle mwf-template"
-            data-mwf-templatename="myapp-list-item"
+            class="mwf-listitem mwf-li-title-subtitle mwf-template mwf-databind"
+            data-mwf-templatename="myapp-listitem"
           >
-            <img src="https://picsum.photos/200/300" class="mwf-left-align" />
+            <img src="{{src}}" class="mwf-left-align" />
             <div class="mwf-left-align mwf-li-titleblock">
-              <h2>lirem dopsum</h2>
-              <h3>sed adispiscing elit</h3>
+              <h2>{{title}}</h2>
+              <h3>{{added}}</h3>
             </div>
             <button
-              class="mwf-imgbutton mwf-img-options-vertical mwf-right-align"
+              class="mwf-listitem-menu-control mwf-imgbutton mwf-img-options-vertical mwf-right-align"
             ></button>
           </li>
         </ul>
@@ -59,6 +64,30 @@
       <footer>
         <button class="mwf-imgbutton mwf-img-refresh mwf-right-align"></button>
       </footer>
+    </div>
+    <div
+      class="mwf-listitem-menu mwf-dialog mwf-popup mwf-template mwf-databind"
+      data-mwf-templatename="myapp-listItemDialog"
+    >
+      <header>
+        <h2>{{title}}</h2>
+      </header>
+      <main>
+        <ul>
+          <li
+            class="mwf-li-singletitle mwf-menu-item"
+            data-mwf-targetaction="editItem"
+          >
+            Editieren
+          </li>
+          <li
+            class="mwf-li-singletitle mwf-menu-item"
+            data-mwf-targetaction="deleteItem"
+          >
+            Löschen
+          </li>
+        </ul>
+      </main>
     </div>
   </body>
 </html>
