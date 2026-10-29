@@ -31,17 +31,28 @@ export default class ListviewViewController extends mwf.ViewController {
     // TODO: do databinding, set listeners, initialise the view
     this.root.querySelector("header .mwf-img-plus").onclick = () => {
       const newItem = entities.createRandomMediaItem();
-      this.crudops.create(newItem).then((created) => {
-        this.addToListview(created);
+      newItem.create().then(() => {
+        console.log("adding new item", newItem);
+        this.addToListview(newItem);
       });
     };
 
-    this.crudops.readAll().then((items) => {
-      this.initialiseListview(items);
-    });
+    // entities.MediaItem.readAll().then((items) => {
+    //   console.log("initialising listview with items from db: ", items);
+    //   this.initialiseListview(items);
+    // });
 
     // call the superclass once creation is done
     super.oncreate();
+  }
+
+  async onresume() {
+    entities.MediaItem.readAll().then((items) => {
+      console.log("initialising listview with items from db: ", items);
+      this.initialiseListview(items);
+    });
+
+    super.onresume();
   }
 
   /*
@@ -66,14 +77,15 @@ export default class ListviewViewController extends mwf.ViewController {
   //   ).toLocaleDateString();
   // }
 
-  /*
-   * for views with listviews: react to the selection of a listitem
-   * TODO: delete if no listview is used or if item selection is specified by targetview/targetaction
-   */
-  onListItemSelected(itemobj, listviewid) {
-    // TODO: implement how selection of itemobj shall be handled
-    alert("Selected: " + itemobj.title + "with id: " + itemobj._id);
-  }
+  // /*
+  //  * for views with listviews: react to the selection of a listitem
+  //  * TODO: delete if no listview is used or if item selection is specified by targetview/targetaction
+  //  */
+  // onListItemSelected(itemobj, listviewid) {
+  //   // TODO: implement how selection of itemobj shall be handled
+  //   //alert("Selected: " + itemobj.title + "with id: " + itemobj._id);
+  //   this.nextView("myapp-mediaReadview", { item: itemobj });
+  // }
 
   // /*
   //  * for views with listviews: react to the selection of a listitem menu option
@@ -102,13 +114,13 @@ export default class ListviewViewController extends mwf.ViewController {
 
   editItem(item) {
     item.title += " " + item.title;
-    this.crudops.update(item._id, item).then(() => {
+    item.update().then(() => {
       this.updateInListview(item._id, item);
     });
   }
 
   deleteItem(item) {
-    this.crudops.delete(item._id).then(() => {
+    item.delete().then(() => {
       this.removeFromListview(item._id);
     });
   }
