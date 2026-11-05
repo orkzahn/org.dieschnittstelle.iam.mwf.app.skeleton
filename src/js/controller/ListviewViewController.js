@@ -31,16 +31,31 @@ export default class ListviewViewController extends mwf.ViewController {
     // TODO: do databinding, set listeners, initialise the view
     this.root.querySelector("header .mwf-img-plus").onclick = () => {
       const newItem = entities.createRandomMediaItem();
-      newItem.create().then(() => {
-        console.log("adding new item", newItem);
-        this.addToListview(newItem);
+
+      this.showDialog("myapp-editDialogTemplate", {
+        item: newItem,
+        actionBindings: {
+          saveItem: (evt) => {
+            evt.original.preventDefault();
+            //alert("saving: " + newItem.title);
+            this.hideDialog();
+            newItem.create().then(() => {
+              console.log("adding new item", newItem);
+              this.addToListview(newItem);
+            });
+          },
+          cancelDialog: (evt) => {
+            evt.original.preventDefault();
+            this.hideDialog();
+          },
+        },
       });
     };
 
-    // entities.MediaItem.readAll().then((items) => {
-    //   console.log("initialising listview with items from db: ", items);
-    //   this.initialiseListview(items);
-    // });
+    entities.MediaItem.readAll().then((items) => {
+      console.log("initialising listview with items from db: ", items);
+      this.initialiseListview(items);
+    });
 
     // call the superclass once creation is done
     super.oncreate();
@@ -61,6 +76,18 @@ export default class ListviewViewController extends mwf.ViewController {
    */
   async onReturnFromNextView(nextviewid, returnValue, returnStatus) {
     // TODO: check from which view, and possibly with which status, we are returning, and handle returnValue accordingly
+    console.log(
+      "onReturnFromNextView():",
+      nextviewid,
+      returnValue,
+      returnStatus,
+    );
+    if (nextviewid === "myapp-mediaReadview") {
+      if (returnStatus === "itemDeleted") {
+        const deletedItem = returnValue.item;
+        this.removeFromListview(deletedItem._id);
+      }
+    }
   }
 
   // /*
