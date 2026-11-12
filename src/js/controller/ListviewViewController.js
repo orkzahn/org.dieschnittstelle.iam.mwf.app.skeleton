@@ -5,6 +5,7 @@ import { mwf } from "vfh-iam-mwf-base";
 import { mwfUtils } from "vfh-iam-mwf-base";
 import * as entities from "../model/MyEntities.js";
 import { GenericCRUDImplLocal } from "vfh-iam-mwf-base";
+import { LocalFileSystemReferenceHandler } from "../model/LocalFileSystemReferenceHandler.js";
 
 export default class ListviewViewController extends mwf.ViewController {
   // instance attributes set by mwf after instantiation
@@ -28,6 +29,8 @@ export default class ListviewViewController extends mwf.ViewController {
    * for any view: initialise the view
    */
   async oncreate() {
+    this.filesystemHandler =
+      await LocalFileSystemReferenceHandler.getInstance();
     // TODO: do databinding, set listeners, initialise the view
     this.root.querySelector("header .mwf-img-plus").onclick = () => {
       const newItem = entities.createRandomMediaItem();
@@ -35,26 +38,40 @@ export default class ListviewViewController extends mwf.ViewController {
       this.showDialog("myapp-editDialogTemplate", {
         item: newItem,
         actionBindings: {
-          saveItem: (evt) => {
+          saveItem: async (evt) => {
             evt.original.preventDefault();
             //alert("saving: " + newItem.title);
+            console.log("saving: " + newItem.title);
             this.hideDialog();
-            newItem.create().then(() => {
-              console.log("adding new item", newItem);
-              this.addToListview(newItem);
-            });
+            if (newItem.imgFile) {
+              const fileRef =
+                await this.filesystemHandler.createLocalFileSystemReference(
+                  newItem.imgFile,
+                );
+              newItem.persistentSrc = fileRef;
+              newItem.src = URL.createObjectURL(newItem.imgFile);
+              delete newItem.imgFile;
+            }
+            const item = await newItem.create();
+            this.addToListview(item);
           },
           cancelDialog: (evt) => {
             evt.original.preventDefault();
+            alert("cancelling: " + newItem.title);
             this.hideDialog();
+          },
+          onImgFileSelected: (evt) => {
+            alert("changed imgfile selection!");
           },
         },
       });
     };
 
     entities.MediaItem.readAll().then((items) => {
-      console.log("initialising listview with items from db: ", items);
-      this.initialiseListview(items);
+      this.resolvePersistentImageSources(items).then(() => {
+        this.items = items;
+        this.initialiseListview(this.items);
+      });
     });
 
     // call the superclass once creation is done
@@ -64,10 +81,26 @@ export default class ListviewViewController extends mwf.ViewController {
   async onresume() {
     entities.MediaItem.readAll().then((items) => {
       console.log("initialising listview with items from db: ", items);
-      this.initialiseListview(items);
+      this.resolvePersistentImageSources(items).then(() => {
+        this.items = items;
+        this.initialiseListview(this.items);
+      });
     });
 
     super.onresume();
+  }
+
+  async resolvePersistentImageSources(items) {
+    await Promise.all(
+      items.map(async (item) => {
+        if (item.persistentSrc) {
+          item.src =
+            await this.filesystemHandler.resolveLocalFileSystemReference(
+              item.persistentSrc,
+            );
+        }
+      }),
+    );
   }
 
   /*
@@ -143,6 +176,39 @@ export default class ListviewViewController extends mwf.ViewController {
     item.title += " " + item.title;
     item.update().then(() => {
       this.updateInListview(item._id, item);
+      // item.title += " " + item.title;
+      // item.update().then(() => {
+      // 	this.updateInListview(item._id, item);
+      // });
+      this.showDialog("myapp-editDialogTemplate", {
+        item: item,
+        actionBindings: {
+          saveItem: async (evt) => {
+            evt.original.preventDefault();
+            //alert("saving: " + newItem.title);
+            console.log("saving: " + item.title);
+            this.hideDialog();
+            if (item.imgFile) {
+              const fileRef =
+                await this.filesystemHandler.createLocalFileSystemReference(
+                  item.imgFile,
+                );
+              item.persistentSrc = fileRef;
+              item.src =
+                await this.filesystemHandler.resolveLocalFileSystemReference(
+                  fileRef,
+                );
+              delete item.imgFile;
+            }
+            await item.update();
+            this.updateInListview(item._id, item);
+          },
+          cancelDialog: (evt) => {
+            evt.original.preventDefault();
+            this.hideDialog();
+          },
+        },
+      });
     });
   }
 

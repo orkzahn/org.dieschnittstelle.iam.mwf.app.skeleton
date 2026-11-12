@@ -2,3 +2,23 @@
 #myapp-mediaReadview main img {
   width: 100%;
 }
+#myapp-editDialogForm img {
+  max-height: 300px;
+  max-width: 400px;
+}
+
+#myapp-editDialogForm fieldset input {
+  margin: 0;
+}
+
+#myapp-editDialogFormFileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+#myapp-editDialogForm label.mwf-img-camera {
+  filter: invert(52%);
+}
